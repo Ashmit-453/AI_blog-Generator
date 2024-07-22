@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Blog Generator </title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Add this inside your <head> or <body> -->
+<script>
+    // Function to get CSRF token from the cookies
+    function getCsrfToken() {
+        let csrfToken = null;
+        const cookies = document.cookie.split(';');
+        cookies.forEach(cookie => {
+            const [name, value] = cookie.split('=');
+            if (name.trim() === 'csrftoken') {
+                csrfToken = value.trim();
+            }
+        });
+        return csrfToken;
+    }
+</script>
+
+    <style>
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    
+        @-webkit-keyframes rotate {
+            from {
+                -webkit-transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+    
+        .load {
+            width: 100px;
+            height: 100px;
+            margin: 110px auto 0;
+            border: solid 10px blue;
+            border-radius: 50%;
+            border-right-color:transparent;
+            border-bottom-color:transparent;
+            transition:all 0.5s ease-in;
+            animation-name: rotate;
+            animation-duration: 1.0s;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+    </style>
+    
+</head>
+<body class="flex flex-col min-h-screen bg-grey-100 font-sans antialised">
+    <nav class="bg-blue-600 p-4 text-white flex justify-between">
+        <div>
+            <h1 class="text-3xl font-bold"> AI Blog Generator </h1>
+        </div>
+        <div>
+            <a href="#" class="text-white hover:underline"> Welcome {{user.username}} </a>
+            <a href="log_out" class="text-white hover:underline"> Logout </a>
+    </nav>
+    <div class="flex-grow container mx-auto mt-10 px-4 sm:px-0">
+        <div class ="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex flex-col">
+            <div class="text-center">
+                <h2 class="text-2xl font-semibold mb-4"> Welcome to AI Blog Generator! </h2>
+                <p class="text-gray-700"> Generate high-quality blog articles from Youtube videos using Artificial Intelligence.<br>
+                    Simply enter the link to the Youtube video below and let the AI create content for you!
+                     </p>
+            </div>
+            <br>
+            <div> 
+                <h2 class="text-xl mb-4 font-semibold"> Enter Youtube Video Link </h2>
+                <div class="flex space-x-4">
+                    <input id ="youtubeLink" type="url" placeholder="Paste Youtube Link...." class="flex-grow p-2 border border-blue-400 rounded-l-md">
+                    <button id="generateBlogButton" class="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 transition colors"> Generate </button> 
+                </div>
+            </div>
+            <div style="display:none;" id="loading-circle" class="load" >
+
+                 </div>
+            <section class="mt-10 flex-grow">
+                <h2 class="text-xl mb-4 font-semibold"> Generated Blog Article </h2>
+                <div id="blogContent" class="mt-2 text-gray-700 space-y-4">
+                </div>
+            </section>
+        </div>
+    </div>
+    <script>
+        document.getElementById('generateBlogButton').addEventListener('click', async () => {
+            const youtubeLink = document.getElementById('youtubeLink').value;
+            const blogContent = document.getElementById('blogContent');
+            
+            if (youtubeLink) {
+                document.getElementById('loading-circle').style.display = 'block';
+                blogContent.innerHTML = ''; // Clear previous content
+    
+                const endpointUrl = '/generate-blog/';
+                const csrfToken = getCsrfToken(); // Get the CSRF token
+    
+                try {
+                    const response = await fetch(endpointUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken, // Include CSRF token in the headers
+                        },
+                        body: JSON.stringify({ link: youtubeLink })
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+    
+                    const data = await response.json();
+    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+    
+                    blogContent.innerHTML = data.content;
+    
+                } catch (error) {
+                    console.error("Error occurred:", error);
+                    alert("Something went wrong. Please try again later.");
+                    
+                }
+                document.getElementById('loading-circle').style.display = 'none';
+            } else {
+                alert("Please enter a YouTube link.");
+            }
+        });
+    
+        function getCsrfToken() {
+            let csrfToken = null;
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.split('=');
+                if (name.trim() === 'csrftoken') {
+                    csrfToken = value.trim();
+                }
+            });
+            return csrfToken;
+        }
+    </script>
+    
+    
+</body>
+</html>
